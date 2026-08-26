@@ -1,4 +1,29 @@
 const { useState, useMemo, useEffect, useCallback } = React;
+const { useState, useMemo, useEffect, useCallback } = React;
+
+// Déclaration des icônes pour le mode CDN
+const ShoppingCart = (props) => <i data-lucide="shopping-cart" {...props} />;
+const RefreshCw = (props) => <i data-lucide="refresh-cw" {...props} />;
+const Users = (props) => <i data-lucide="users" {...props} />;
+const Wallet = (props) => <i data-lucide="wallet" {...props} />;
+const Store = (props) => <i data-lucide="store" {...props} />;
+const ChefHat = (props) => <i data-lucide="chef-hat" {...props} />;
+const Info = (props) => <i data-lucide="info" {...props} />;
+const Check = (props) => <i data-lucide="check" {...props} />;
+const Layers = (props) => <i data-lucide="layers" {...props} />;
+const Leaf = (props) => <i data-lucide="leaf" {...props} />;
+const Download = (props) => <i data-lucide="download" {...props} />;
+const Copy = (props) => <i data-lucide="copy" {...props} />;
+const ImageIcon = (props) => <i data-lucide="image" {...props} />;
+const Sun = (props) => <i data-lucide="sun" {...props} />;
+const Moon = (props) => <i data-lucide="moon" {...props} />;
+const ShoppingBag = (props) => <i data-lucide="shopping-bag" {...props} />;
+const Truck = (props) => <i data-lucide="truck" {...props} />;
+const Bike = (props) => <i data-lucide="bike" {...props} />;
+const Lock = (props) => <i data-lucide="lock" {...props} />;
+const Unlock = (props) => <i data-lucide="unlock" {...props} />;
+const X = (props) => <i data-lucide="x" {...props} />;
+const CalendarDays = (props) => <i data-lucide="calendar-days" {...props} />;
 
 /* ------------------------------------------------------------------ */
 /*  DATA                                                               */
@@ -2637,3 +2662,9 @@ export default function App() {
     </div>
   );
 }
+
+useEffect(() => {
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+});
