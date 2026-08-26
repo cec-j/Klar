@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Générateur de Menus & Liste de Courses</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & React DOM CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone pour compiler le JSX dans le navigateur -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- Point d'ancrage de l'application React -->
+  <div id="root"></div>
+
+  <!-- Script d'intégration Babel / React -->
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, useCallback } = React;
+
+    /* ------------------------------------------------------------------ */
+    /*  COMPOSANT PROXY POUR LES ICÔNES LUCIDE                            */
+    /* ------------------------------------------------------------------ */
+    // Helper pour utiliser Lucide dans un environnement UMD sans imports ES6
+    const Icon = ({ name, size = 24, className = "" }) => {
+      const iconRef = React.useRef(null);
+      
+      useEffect(() => {
+        if (iconRef.current) {
+          iconRef.current.innerHTML = `<i data-lucide="${name}"></i>`;
+          lucide.createIcons({
+            attrs: {
+              width: size,
+              height: size,
+              class: className
+            },
+            nameAttr: 'data-lucide'
+          });
+        }
+      }, [name, size, className]);
+
+      return <span ref={iconRef} class="inline-flex items-center justify-center"></span>;
+    };
+
+    // Proxies des icônes utilisées dans le composant
+    const ShoppingCart = (p) => <Icon name="shopping-cart" {...p} />;
+    const RefreshCw = (p) => <Icon name="refresh-cw" {...p} />;
+    const Users = (p) => <Icon name="users" {...p} />;
+    const Wallet = (p) => <Icon name="wallet" {...p} />;
+    const Store = (p) => <Icon name="store" {...p} />;
+    const ChefHat = (p) => <Icon name="chef-hat" {...p} />;
+    const Info = (p) => <Icon name="info" {...p} />;
+    const Check = (p) => <Icon name="check" {...p} />;
+    const Layers = (p) => <Icon name="layers" {...p} />;
+    const Leaf = (p) => <Icon name="leaf" {...p} />;
+    const Download = (p) => <Icon name="download" {...p} />;
+    const Copy = (p) => <Icon name="copy" {...p} />;
+    const ImageIcon = (p) => <Icon name="image" {...p} />;
+    const Sun = (p) => <Icon name="sun" {...p} />;
+    const Moon = (p) => <Icon name="moon" {...p} />;
+    const ShoppingBag = (p) => <Icon name="shopping-bag" {...p} />;
+    const Truck = (p) => <Icon name="truck" {...p} />;
+    const Bike = (p) => <Icon name="bike" {...p} />;
+    const Lock = (p) => <Icon name="lock" {...p} />;
+    const Unlock = (p) => <Icon name="unlock" {...p} />;
+    const X = (p) => <Icon name="x" {...p} />;
+    const CalendarDays = (p) => <Icon name="calendar-days" {...p} />;
+
+    /* ------------------------------------------------------------------ */
+    /*  DATA                                                               */
+    /* ------------------------------------------------------------------ */
+
+    const STORES = [
+      { id: "lidl", name: "Lidl", mult: 0.97 },
+      { id: "leclerc", name: "Leclerc", mult: 1.00 },
+      { id: "aldi", name: "Aldi", mult: 1.02 },
+      { id: "intermarche", name: "Intermarché", mult: 1.03 },
+      { id: "carrefour", name: "Carrefour", mult: 1.09 },
+      { id: "auchan", name: "Auchan", mult: 1.13 },
+      { id: "monoprix", name: "Monoprix", mult: 1.30 },
+    ];
+
+    const AFFILIATE_LINKS = {
+      quitoque: "https://www.quitoque.fr/",
+      hellofresh: "https://www.hellofresh.fr/",
+      deliveroo: "https://deliveroo.fr/",
+      ubereats: "https://www.ubereats.com/fr",
+    };
+
+    const DRIVE_LINKS = {
+      lidl: "https://www.lidl.fr/",
+      aldi: "https://www.aldi.fr/",
+      leclerc: "https://www.leclercdrive.fr/",
+      intermarche: "https://www.intermarche.com/",
+      auchan: "https://www.auchan.fr/",
+      carrefour: "https://www.carrefour.fr/",
+      monoprix: "https://www.monoprix.fr/",
+    };
+
+    const CATEGORY_ORDER = [
+      "Fruits & légumes",
+      "Viande & poisson",
+      "Crèmerie",
+      "Féculents & épicerie",
+      "Boulangerie",
+      "Surgelés",
+    ];
+
+    const MONTHS = [
+      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+    ];
+
+    const SEASON = {
+      "Tomates": [6, 7, 8, 9, 10],
+      "Tomates cerises": [6, 7, 8, 9],
+      "Courgette": [6, 7, 8, 9],
+      "Courgettes": [6, 7, 8, 9],
+      "Aubergine": [7, 8, 9, 10],
+      "Poivron": [7, 8, 9, 10],
+      "Brocoli": [10, 11, 12, 1, 2, 3, 4],
+      "Basilic": [5, 6, 7, 8, 9],
+      "Concombre": [5, 6, 7, 8, 9],
+    };
+
+    const FULL_SEASON_CALENDAR = {
+      1: {
+        fruits: ["Orange", "Clémentine", "Mandarine", "Pamplemousse", "Kiwi", "Poire", "Pomme"],
+        legumes: ["Poireau", "Carotte", "Céleri-rave", "Chou", "Endive", "Potiron", "Navet", "Panais", "Topinambour", "Mâche"],
+      },
+      2: {
+        fruits: ["Orange", "Clémentine", "Pamplemousse", "Kiwi", "Poire", "Pomme"],
+        legumes: ["Poireau", "Carotte", "Céleri-rave", "Chou", "Endive", "Épinard", "Navet", "Panais", "Topinambour"],
+      },
+      3: {
+        fruits: ["Orange", "Kiwi", "Poire", "Pomme", "Rhubarbe"],
+        legumes: ["Poireau", "Carotte", "Épinard", "Radis", "Navet", "Blette", "Chou-fleur", "Artichaut"],
+      },
+      4: {
+        fruits: ["Pomme", "Poire", "Rhubarbe", "Fraise"],
+        legumes: ["Asperge", "Radis", "Épinard", "Petits pois", "Artichaut", "Carotte nouvelle", "Blette"],
+      },
+      5: {
+        fruits: ["Fraise", "Rhubarbe", "Cerise"],
+        legumes: ["Asperge", "Petits pois", "Radis", "Artichaut", "Courgette", "Épinard", "Fève"],
+      },
+      6: {
+        fruits: ["Fraise", "Cerise", "Abricot", "Melon", "Framboise"],
+        legumes: ["Courgette", "Tomate", "Concombre", "Petits pois", "Haricot vert", "Radis", "Fève"],
+      },
+      7: {
+        fruits: ["Abricot", "Pêche", "Nectarine", "Melon", "Framboise", "Cerise", "Myrtille"],
+        legumes: ["Tomate", "Courgette", "Aubergine", "Poivron", "Concombre", "Haricot vert", "Maïs"],
+      },
+      8: {
+        fruits: ["Framboise", "Groseille", "Melon", "Mûre", "Myrtille", "Nectarine", "Pastèque", "Pêche", "Poire", "Prune", "Tomate"],
+        legumes: ["Artichaut", "Aubergine", "Betterave", "Courgette", "Poivron", "Maïs", "Haricot vert", "Concombre"],
+      },
+      9: {
+        fruits: ["Raisin", "Poire", "Pomme", "Figue", "Prune", "Mirabelle"],
+        legumes: ["Potiron", "Courge", "Poireau", "Champignon", "Aubergine", "Poivron", "Betterave"],
+      },
+      10: {
+        fruits: ["Raisin", "Pomme", "Poire", "Coing", "Figue", "Noix"],
+        legumes: ["Potiron", "Courge", "Champignon", "Céleri-rave", "Chou", "Brocoli", "Poireau", "Panais"],
+      },
+      11: {
+        fruits: ["Pomme", "Poire", "Kiwi", "Coing", "Marron"],
+        legumes: ["Potimarron", "Chou", "Poireau", "Céleri-rave", "Endive", "Navet", "Topinambour", "Mâche"],
+      },
+      12: {
+        fruits: ["Pomme", "Poire", "Orange", "Clémentine", "Kiwi", "Marron"],
+        legumes: ["Poireau", "Chou", "Endive", "Céleri-rave", "Potimarron", "Panais", "Topinambour", "Mâche"],
+      },
+    };
+
+    const PRODUCE_EMOJI = {
+      "Fraise": "🍓", "Melon": "🍈", "Pastèque": "🍉", "Pêche": "🍑", "Nectarine": "🍑",
+      "Poire": "🍐", "Pomme": "🍎", "Raisin": "🍇", "Cerise": "🍒", "Myrtille": "🫐",
+      "Kiwi": "🥝", "Orange": "🍊", "Clémentine": "🍊", "Mandarine": "🍊",
+      "Marron": "🌰", "Châtaigne": "🌰",
+      "Tomate": "🍅", "Maïs": "🌽", "Carotte": "🥕", "Carotte nouvelle": "🥕",
+      "Aubergine": "🍆", "Poivron": "🫑", "Concombre": "🥒", "Champignon": "🍄",
+      "Ail": "🧄", "Oignon": "🧅", "Chou": "🥬", "Brocoli": "🥦",
+    };
+
+    const RECIPES = [
+      { id: 1, name: "Pâtes à la carbonara", tags: ["viande", "rapide"], style: ["gourmand"], base: "Lardons", diff: "facile", gluten: true, time: 20,
+        ing: [
+          { n: "Pâtes", q: 250, u: "g", c: "Féculents & épicerie", p: 0.60 },
+          { n: "Lardons", q: 150, u: "g", c: "Viande & poisson", p: 2.20 },
+          { n: "Œufs", q: 2, u: "pièce", c: "Crèmerie", p: 0.60 },
+          { n: "Crème fraîche", q: 20, u: "cl", c: "Crèmerie", p: 0.90 },
+          { n: "Parmesan", q: 30, u: "g", c: "Crèmerie", p: 1.20 },
+        ] },
+      { id: 2, name: "Poulet rôti & légumes", tags: ["viande"], style: ["healthy", "proteine", "anti-inflammatoire"], base: "Cuisses de poulet", dinnerOnly: true, diff: "moyen", gluten: false, time: 60,
+        ing: [
+          { n: "Cuisses de poulet", q: 4, u: "pièce", c: "Viande & poisson", p: 4.50 },
+          { n: "Pommes de terre", q: 600, u: "g", c: "Fruits & légumes", p: 0.90 },
+          { n: "Carottes", q: 300, u: "g", c: "Fruits & légumes", p: 0.60 },
+          { n: "Oignon", q: 2, u: "pièce", c: "Fruits & légumes", p: 0.30 },
+          { n: "Thym", q: 1, u: "sachet", c: "Féculents & épicerie", p: 0.50 },
+        ] },
+      { id: 3, name: "Curry de pois chiches", tags: ["vegetarien", "rapide"], style: ["healthy", "proteine", "anti-inflammatoire"], base: "Pois chiches", diff: "facile", gluten: false, time: 20,
+        ing: [
+          { n: "Pois chiches", q: 1, u: "boîte", c: "Féculents & épicerie", p: 0.90 },
+          { n: "Lait de coco", q: 200, u: "ml", c: "Féculents & épicerie", p: 1.20 },
+          { n: "Tomates concassées", q: 1, u: "boîte", c: "Féculents & épicerie", p: 0.80 },
+          { n: "Oignon", q: 1, u: "pièce", c: "Fruits & légumes", p: 0.15 },
+          { n: "Riz", q: 200, u: "g", c: "Féculents & épicerie", p: 0.50 },
+          { n: "Épices curry", q: 1, u: "sachet", c: "Féculents & épicerie", p: 0.40 },
+        ] },
+      { id: 4, name: "Saumon poêlé, riz basmati", tags: ["poisson", "rapide"], style: ["healthy", "proteine", "anti-inflammatoire"], base: "Pavés de saumon", diff: "facile", gluten: false, time: 20,
+        ing: [
+          { n: "Pavés de saumon", q: 2, u: "pièce", c: "Viande & poisson", p: 5.50 },
+          { n: "Riz basmati", q: 200, u: "g", c: "Féculents & épicerie", p: 0.60 },
+          { n: "Brocoli", q: 300, u: "g", c: "Fruits & légumes", p: 1.10 },
+          { n: "Citron", q: 1, u: "pièce", c: "Fruits & légumes", p: 0.30 },
+        ] },
+      { id: 5, name: "Chili con carne", tags: ["viande"], style: ["proteine"], base: "Bœuf haché", diff: "moyen", gluten: false, time: 35,
+        ing: [
+          { n: "Bœuf haché", q: 300, u: "g", c: "Viande & poisson", p: 3.60 },
+          { n: "Haricots rouges", q: 1, u: "boîte", c: "Féculents & épicerie", p: 0.90 },
+          { n: "Tomates concassées", q: 1, u: "boîte", c: "Féculents & épicerie", p: 0.80 },
+          { n: "Oignon", q: 1, u: "pièce", c: "Fruits & légumes", p: 0.15 },
+          { n: "Poivron", q: 1, u: "pièce", c: "Fruits & légumes", p: 0.70 },
+          { n: "Riz", q: 200, u: "g", c: "Féculents & épicerie", p: 0.50 },
+        ] },
+      { id: 6, name: "Omelette champignons, salade", tags: ["vegetarien", "rapide"], style: ["healthy", "proteine", "anti-inflammatoire"], base: "Œufs", diff: "facile", gluten: false, time: 15,
+        ing: [
+          { n: "Œufs", q: 6, u: "pièce", c: "Crèmerie", p: 1.80 },
+          { n: "Champignons", q: 250, u: "g", c: "Fruits & légumes", p: 1.50 },
+          { n: "Salade verte", q: 1, u: "pièce", c: "Fruits & légumes", p: 1.00 },
+          { n: "Vinaigrette", q: 1, u: "sachet", c: "Féculents & épicerie", p: 0.30 },
+        ] }
+    ];
+
+    const PALETTE = ["#F2C14E", "#8FB9A8", "#E3A6A1", "#B9C6E0", "#D8B4E2"];
+
+    /* ------------------------------------------------------------------ */
+    /*  NUTRITION HELPER                                                 */
+    /* ------------------------------------------------------------------ */
+    const PIECE_GRAMS = {
+      "Œufs": 55, "Cuisses de poulet": 170, "Oignon": 110, "Pavés de saumon": 150, "Citron": 100,
+      "Salade verte": 250, "Dos de cabillaud": 150, "Courgette": 200, "Tomates": 130, "Aubergine": 250,
+      "Poivron": 150, "Pâte brisée": 230, "Steaks hachés": 125, "Salade romaine": 250, "Tortillas": 45,
+      "Pains à burger": 80, "Avocat": 170, "Concombre": 280, "Pâte à pizza": 280, "Pain": 250,
+    };
+
+    const UNIT_GRAMS_DEFAULT = { boîte: 400, sachet: 10, tranche: 22, botte: 30, gousse: 5, branche: 40, brique: 250 };
+
+    function ingredientGrams(ing) {
+      if (ing.u === "g" || ing.u === "ml") return ing.q;
+      if (ing.u === "cl") return ing.q * 10;
+      if (ing.u === "pièce") return ing.q * (PIECE_GRAMS[ing.n] || 100);
+      return ing.q * (UNIT_GRAMS_DEFAULT[ing.u] || 50);
+    }
+
+    function nutriPer100g(name, cat) {
+      const n = name.toLowerCase();
+      if (/lardons|chorizo|merguez/.test(n)) return { kcal: 330, protein: 15 };
+      if (/bœuf haché|boeuf haché/.test(n)) return { kcal: 215, protein: 20 };
+      if (/poulet/.test(n)) return { kcal: 165, protein: 23 };
+      if (/saumon/.test(n)) return { kcal: 200, protein: 20 };
+      if (/œufs?/.test(n)) return { kcal: 155, protein: 13 };
+      if (cat === "Fruits & légumes") return { kcal: 35, protein: 1.5 };
+      if (cat === "Viande & poisson") return { kcal: 180, protein: 21 };
+      if (cat === "Crèmerie") return { kcal: 150, protein: 9 };
+      if (cat === "Féculents & épicerie") return { kcal: 250, protein: 7 };
+      return { kcal: 60, protein: 2 };
+    }
+
+    function recipeNutritionPerPerson(recipe) {
+      let kcal = 0, protein = 0;
+      recipe.ing.forEach((ing) => {
+        const grams = ingredientGrams(ing);
+        const per100 = nutriPer100g(ing.n, ing.c);
+        kcal += (grams / 100) * per100.kcal;
+        protein += (grams / 100) * per100.protein;
+      });
+      return { kcal: Math.round(kcal / 2 / 10) * 10, protein: Math.round(protein / 2) };
+    }
+
+    const NUTRITION_BY_ID = {};
+    RECIPES.forEach((r) => { NUTRITION_BY_ID[r.id] = recipeNutritionPerPerson(r); });
+
+    /* ------------------------------------------------------------------ */
+    /*  COMPOSANT PRINCIPAL APP                                            */
+    /* ------------------------------------------------------------------ */
+    function App() {
+      const [people, setPeople] = useState(2);
+      const [storeId, setStoreId] = useState("leclerc");
+      const [menu, setMenu] = useState([]);
+
+      const store = STORES.find((s) => s.id === storeId) || STORES[1];
+
+      const generateMenu = () => {
+        // Logique de génération simplifiée pour la démo HTML
+        setMenu(RECIPES.slice(0, 3));
+      };
+
+      useEffect(() => {
+        generateMenu();
+      }, []);
+
+      return (
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
+          <header className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <h1 className="text-2xl font-bold text-emerald-600 flex items-center gap-2">
+              <ChefHat className="text-emerald-500" /> Mon Générateur de Menus
+            </h1>
+            <button 
+              onClick={generateMenu} 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition"
+            >
+              <RefreshCw size={18} /> Régénérer
+            </button>
+          </header>
+
+          <main className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
+              <h2 className="font-semibold text-lg flex items-center gap-2">
+                <Store size={20} className="text-emerald-500"/> Paramètres
+              </h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Magasin</label>
+                <select 
+                  value={storeId} 
+                  onChange={(e) => setStoreId(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2 bg-white"
+                >
+                  {STORES.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de personnes</label>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setPeople(Math.max(1, people - 1))}
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center font-bold"
+                  >-</button>
+                  <span className="font-semibold text-lg">{people}</span>
+                  <button 
+                    onClick={() => setPeople(people + 1)}
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center font-bold"
+                  >+</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-4">
+              <h2 className="font-semibold text-lg flex items-center gap-2">
+                <ShoppingCart size={20} className="text-emerald-500"/> Vos Recettes Sélectionnées
+              </h2>
+              <div className="space-y-3">
+                {menu.map(recipe => (
+                  <div key={recipe.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{recipe.name}</h3>
+                      <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                        <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">{recipe.diff}</span>
+                        <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{recipe.time} min</span>
+                      </div>
+                    </div>
+                    <span className="font-bold text-emerald-600">
+                      {(recipe.ing.reduce((acc, i) => acc + i.p, 0) * (people / 2) * store.mult).toFixed(2)} €
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    // Rendu dans le DOM
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+</body>
+</html>
