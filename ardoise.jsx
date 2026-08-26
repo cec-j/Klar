@@ -1,5 +1,4 @@
 const { useState, useMemo, useEffect, useCallback } = React;
-const { useState, useMemo, useEffect, useCallback } = React;
 
 // Déclaration des icônes pour le mode CDN
 const ShoppingCart = (props) => <i data-lucide="shopping-cart" {...props} />;
