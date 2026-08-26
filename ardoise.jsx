@@ -1,11 +1,3 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import {
-  ShoppingCart, RefreshCw, Users, Wallet, Store, ChefHat, Info, Check,
-  Layers, Leaf, Download, Copy, Image as ImageIcon, Sun, Moon,
-  ShoppingBag, Truck, Bike, Lock, Unlock, X, CalendarDays,
-  Coins, Snowflake, Sparkles, Lightbulb,
-} from "lucide-react";
-
 /* ------------------------------------------------------------------ */
 /*  DATA                                                               */
 /* ------------------------------------------------------------------ */
