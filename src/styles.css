@@ -1,9 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input, select, textarea { font: inherit; }
-button, a { -webkit-tap-highlight-color: transparent; }
-* { box-sizing: border-box; }
