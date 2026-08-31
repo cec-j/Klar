@@ -675,10 +675,10 @@ function downloadTextFile(filename, text) {
 const INK = "#22201C";
 const PAPER = "#FAF8F2";
 const GRID = "#DCE3E8";
-const STAMP = "#C1440E";
-const GREEN = "#3F6B4F";
-const RED = "#A1403D";
-const YELLOW = "#F2C14E";
+const GREEN = "#A5B274";
+const PINK = "#C2869B";
+const RED = "#A5B274";
+const GREEN = "#5D6154";
 
 function Stepper({ value, min, max, onChange, suffix }) {
   return (
@@ -1488,7 +1488,7 @@ export default function App() {
           <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center gap-2 text-sm font-bold mb-1.5">
-                <Truck size={16} /> Pas le temps de faire les courses ?
+                <Truck size={16} /> Envie d'aller encore plus vite ?
               </div>
               <p className="text-xs mb-3" style={{ opacity: 0.75 }}>
                 Les box repas comme Quitoque ou HelloFresh livrent des ingrédients frais et des recettes prêtes à
@@ -1518,11 +1518,10 @@ export default function App() {
 
             <div>
               <div className="flex items-center gap-2 text-sm font-bold mb-1.5">
-                <Bike size={16} /> Envie d'aller encore plus vite ?
+                <Bike size={16} /> Pas le temps de faire les courses ? Faites-vous livrer !
               </div>
               <p className="text-xs mb-3" style={{ opacity: 0.75 }}>
-                Deliveroo et Uber Eats livrent des plats déjà prêts en moins de 30 minutes, pour les soirs sans
-                énergie de cuisiner.
+                Deliveroo et Uber Eats livrent vos courses directment chez vous.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <a
