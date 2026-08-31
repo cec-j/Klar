@@ -4,6 +4,7 @@ import {
   Layers, Leaf, Download, Copy, Image as ImageIcon, Sun, Moon,
   ShoppingBag, Truck, Bike,
 } from "lucide-react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 /* ------------------------------------------------------------------ */
 /*  DATA                                                               */
@@ -1489,6 +1490,7 @@ export default function App() {
           basée sur le calendrier français des légumes frais. Projet libre, gratuit et sans compte.
         </footer>
       </div>
+      <SpeedInsights />
     </div>
   );
 }
