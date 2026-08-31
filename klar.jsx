@@ -675,10 +675,10 @@ function downloadTextFile(filename, text) {
 const INK = "#22201C";
 const PAPER = "#FAF8F2";
 const GRID = "#DCE3E8";
-const GREEN = "#A5B274";
-const PINK = "#C2869B";
+const STAMP = "#A5B274";
+const GREEN = "#C2869B";
 const RED = "#A5B274";
-const GREEN = "#5D6154";
+const YELLOW = "#5D6154";
 
 function Stepper({ value, min, max, onChange, suffix }) {
   return (
