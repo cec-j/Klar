@@ -675,10 +675,10 @@ function downloadTextFile(filename, text) {
 const INK = "#22201C";
 const PAPER = "#FAF8F2";
 const GRID = "#DCE3E8";
-const STAMP = "#C1440E";
-const GREEN = "#3F6B4F";
-const RED = "#A1403D";
-const YELLOW = "#F2C14E";
+const STAMP = "#A5B274";
+const GREEN = "#C2869B";
+const RED = "#A5B274";
+const YELLOW = "#5D6154";
 
 function Stepper({ value, min, max, onChange, suffix }) {
   return (
@@ -795,6 +795,70 @@ export default function App() {
       "https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&display=swap";
     document.head.appendChild(link);
     return () => document.head.removeChild(link);
+  }, []);
+
+  // Favicon généré à partir de la typo du logo (Kalam) : un "K" papier sur fond tampon,
+  // dessiné en canvas pour ne dépendre d'aucun fichier statique externe.
+  useEffect(() => {
+    let cancelled = false;
+    const buildFavicon = async () => {
+      try {
+        if (document.fonts) {
+          await document.fonts.load("700 128px 'Kalam'");
+        }
+      } catch (e) { /* police non bloquante, on retente quand même le dessin */ }
+      if (cancelled) return;
+
+      const size = 128;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      const radius = size * 0.22;
+      const roundedRect = (x, y, w, h, r) => {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      };
+
+      // fond "tampon"
+      roundedRect(0, 0, size, size, radius);
+      ctx.fillStyle = STAMP;
+      ctx.fill();
+
+      // liseré papier
+      const bw = size * 0.035;
+      roundedRect(bw, bw, size - bw * 2, size - bw * 2, radius - bw);
+      ctx.strokeStyle = PAPER;
+      ctx.lineWidth = bw;
+      ctx.stroke();
+
+      // lettre K, dans la typo du logo
+      ctx.font = "700 82px 'Kalam', cursive";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.fillText("K", size / 2 + 1, size / 2 + 4);
+      ctx.fillStyle = PAPER;
+      ctx.fillText("K", size / 2, size / 2 + 3);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      let linkEl = document.querySelector("link[rel~='icon']");
+      if (!linkEl) {
+        linkEl = document.createElement("link");
+        linkEl.rel = "icon";
+        document.head.appendChild(linkEl);
+      }
+      linkEl.type = "image/png";
+      linkEl.href = dataUrl;
+    };
+    buildFavicon();
+    return () => { cancelled = true; };
   }, []);
 
   const currentMonth = new Date().getMonth() + 1;
@@ -1424,7 +1488,7 @@ export default function App() {
           <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center gap-2 text-sm font-bold mb-1.5">
-                <Truck size={16} /> Pas le temps de faire les courses ?
+                <Truck size={16} /> Envie d'aller encore plus vite ?
               </div>
               <p className="text-xs mb-3" style={{ opacity: 0.75 }}>
                 Les box repas comme Quitoque ou HelloFresh livrent des ingrédients frais et des recettes prêtes à
@@ -1454,11 +1518,10 @@ export default function App() {
 
             <div>
               <div className="flex items-center gap-2 text-sm font-bold mb-1.5">
-                <Bike size={16} /> Envie d'aller encore plus vite ?
+                <Bike size={16} /> Pas le temps de faire les courses ? Faites-vous livrer !
               </div>
               <p className="text-xs mb-3" style={{ opacity: 0.75 }}>
-                Deliveroo et Uber Eats livrent des plats déjà prêts en moins de 30 minutes, pour les soirs sans
-                énergie de cuisiner.
+                Deliveroo et Uber Eats livrent vos courses directment chez vous.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <a
